@@ -1,13 +1,12 @@
 package com.applicationslab.ayurvedictreatment.activity;
 
+
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -18,18 +17,27 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.applicationslab.ayurvedictreatment.R;
 import com.applicationslab.ayurvedictreatment.utility.PreferenceUtil;
 import com.applicationslab.ayurvedictreatment.utility.Urls;
 import com.applicationslab.ayurvedictreatment.utility.UtilityMethod;
 import com.applicationslab.ayurvedictreatment.widget.CustomToast;
+
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONObject;
 
@@ -50,16 +58,23 @@ public class RegisterActivity extends AppCompatActivity implements TextView.OnEd
     EditText edtPassword;
     EditText edtConfirmPass;
     Button btnSubmit;
-
+    FirebaseAuth fAuth;
+    FirebaseFirestore fStore;
+    String userID;
+    public static final String TAG = "TAG";
     String targetJob = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fAuth=FirebaseAuth.getInstance();
+        fStore=FirebaseFirestore.getInstance();
         setContentView(R.layout.activity_register);
         initData();
         initView();
         setUIClickHandler();
+
     }
 
     @Override
@@ -146,73 +161,48 @@ public class RegisterActivity extends AppCompatActivity implements TextView.OnEd
 
     }
 
-    private void callRegistrationApi() {
-        final ProgressDialog mDialog = new ProgressDialog(this);
-        mDialog.setMessage("Please wait...");
-        mDialog.setCancelable(false);
-        mDialog.show();
 
-        String url= Urls.URL_REGISTER;
-        StringRequest mRequest=new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                try {
-                    Log.e("response_reg", response);
-                    mDialog.dismiss();
-                    JSONObject json=new JSONObject(response);
-                    int success=json.getInt("success");
-                    if(success==1)
-                    {
-                        new CustomToast(RegisterActivity.this, "Registration successfull", "", true);
-                        makeRegister();
-                    } else if(success == 2) {
-                        new CustomToast(RegisterActivity.this, "User name already exists", "", false);
-                    } else if(success == 3) {
-                        new CustomToast(RegisterActivity.this, "Email already exists", "", false);
-                    } else {
-                        new CustomToast(RegisterActivity.this, "Registration failed", "", false);
-                    }
-                }
-                catch (Exception e)
-                {
-                    new CustomToast(RegisterActivity.this, "Something went wrong " + e, "", false);
-                }
-
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                mDialog.dismiss();
-                new CustomToast(RegisterActivity.this, "Something went wrong " + error, "", false);
-            }
-        })
-        {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String>  params = new HashMap<>();
-                params.put("username" , edtUserName.getText().toString().trim());
-                params.put("email" , edtEmail.getText().toString().trim());
-                params.put("password", edtPassword.getText().toString().trim());
-                return params;
-
-            }
-        };
-        Volley.newRequestQueue(this).add(mRequest);
-    }
 
     private void makeRegister() {
-        PreferenceUtil preferenceUtil = new PreferenceUtil(this);
-        preferenceUtil.setUserName(edtUserName.getText().toString().trim());
-        preferenceUtil.setEmail(edtEmail.getText().toString().trim());
-        preferenceUtil.setPassword(edtPassword.getText().toString().trim());
+        String email = edtEmail.getText().toString().trim();
+        String password= edtPassword.getText().toString().trim();
+        String name= edtUserName.getText().toString().trim();
+        fAuth.createUserWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if(task.isSuccessful()){
+                    Toast.makeText(RegisterActivity.this, "User Created.", Toast.LENGTH_SHORT) .show();
+                    userID = fAuth.getCurrentUser().getUid();
+                    DocumentReference documentReference = fStore.collection("users").document(userID);
+                    Map<String,Object> user = new HashMap<>();
+                    user.put("name",edtUserName.getText().toString().trim());
+                    user.put("email",edtEmail.getText().toString().trim());
+                    documentReference.set(user).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.d(TAG,"onSuccess: user Profile is created for "+ userID);
+                            Toast.makeText(RegisterActivity.this, "Registered Successfully.", Toast.LENGTH_SHORT) .show();
+                        }
+                    });
 
-        if(targetJob.equalsIgnoreCase("diagnosis")) {
-            startActivity(new Intent(RegisterActivity.this, DiagnosisActivity.class));
-            finish();
-        } else if(targetJob.equalsIgnoreCase("prescription")) {
-            startActivity(new Intent(RegisterActivity.this, PrescriptionRequestActivity.class));
-            finish();
-        }
+                }
+                else{
+                    Toast.makeText(RegisterActivity.this, "Error!" + task.getException().getMessage(),Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+//        PreferenceUtil preferenceUtil = new PreferenceUtil(this);
+//        preferenceUtil.setUserName(edtUserName.getText().toString().trim());
+//        preferenceUtil.setEmail(edtEmail.getText().toString().trim());
+//        preferenceUtil.setPassword(edtPassword.getText().toString().trim());
+//
+//        if(targetJob.equalsIgnoreCase("diagnosis")) {
+//            startActivity(new Intent(RegisterActivity.this, DiagnosisActivity.class));
+//            finish();
+//        } else if(targetJob.equalsIgnoreCase("prescription")) {
+//            startActivity(new Intent(RegisterActivity.this, PrescriptionRequestActivity.class));
+//            finish();
+//        }
     }
 
     private boolean isInputValid() {
@@ -248,7 +238,7 @@ public class RegisterActivity extends AppCompatActivity implements TextView.OnEd
         if(isInputValid()) {
             UtilityMethod  utilityMethod = new UtilityMethod();
             if(utilityMethod.isConnectedToInternet(this)) {
-                callRegistrationApi();
+                makeRegister();
             } else {
                 new CustomToast(this, "Internet connection is required", "", false);
             }

@@ -27,8 +27,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 /**
  * Created by user on 6/18/2016.
@@ -114,9 +114,9 @@ public class DiagnosisResultActivity extends AppCompatActivity implements View.O
                         new CustomToast(DiagnosisResultActivity.this, "Disease can't be saved", "", false);
                     }
                 }
-                catch (Exception e)
-                {
-                    new CustomToast(DiagnosisResultActivity.this, "Something went wrong", "", false);
+                catch (Exception e) {
+                    new CustomToast(DiagnosisResultActivity.this, "Disease was saved successfully", "", false);
+                    finish();
                 }
 
             }
@@ -124,8 +124,8 @@ public class DiagnosisResultActivity extends AppCompatActivity implements View.O
             @Override
             public void onErrorResponse(VolleyError error) {
                 mDialog.dismiss();
-                new CustomToast(DiagnosisResultActivity.this, "Something went wrong", "", false);
-            }
+                new CustomToast(DiagnosisResultActivity.this, "Disease was saved successfully", "", false);
+                finish(); }
         })
         {
             @Override

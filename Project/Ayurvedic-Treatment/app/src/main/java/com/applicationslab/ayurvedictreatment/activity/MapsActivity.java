@@ -3,10 +3,10 @@ package com.applicationslab.ayurvedictreatment.activity;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -54,7 +54,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int REQUEST_PERMISSION_ACCESS_FINE_LOCATION = 1;
     private static final int REQUEST_PERMISSION_WRITE_EXTERNAL_STORAGE = 2;
     private static final int REQUEST_PERMISSION_ACCESS_FINE_WRITE_EXTERNAL = 3;
-    String PLACES_API_KEY="YOUR_PLACES_API_KEY";
+    String PLACES_API_KEY="AIzaSyAUu8kEAol9Vq7mGKJcS3LPLqtpm04PU5Q";
 
     PlacesClient placesClient;
     PermissionHandler permission;

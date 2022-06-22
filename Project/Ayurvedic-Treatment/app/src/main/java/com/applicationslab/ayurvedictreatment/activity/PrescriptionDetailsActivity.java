@@ -6,8 +6,8 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -127,7 +127,7 @@ public class PrescriptionDetailsActivity extends AppCompatActivity implements Vi
         body += "Patient's Problem: " + edtProbDetails.getText().toString().trim() +"\n\n";
         body += "Please send proper prescription to the patient's email address. Thank you.";
 
-        String[] TO = {EMAIL_ADDRESS_OF_DOCTOR};
+        String[] TO = {"EMAIL_ADDRESS_OF_DOCTOR@gmail.com"};
         String[] CC = {};
         Intent emailIntent = new Intent(Intent.ACTION_SEND);
 

@@ -7,8 +7,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
-import android.support.v4.content.ContextCompat;
-import android.support.design.widget.Snackbar;
+import androidx.core.content.ContextCompat;
+import com.google.android.material.snackbar.Snackbar;
 import android.view.View;
 
 import com.applicationslab.ayurvedictreatment.R;

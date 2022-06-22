@@ -15,6 +15,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -33,8 +40,9 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 /**
  * Created by user on 6/7/2016.
@@ -49,12 +57,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     EditText edtPassword;
     Button btnLogin;
     Button btnRegister;
-
+    FirebaseAuth fAuth;
     String targetJob = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fAuth=FirebaseAuth.getInstance();
         setContentView(R.layout.activity_login);
         initData();
         initView();
@@ -133,58 +142,69 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
 
-    private void callLoginApi() {
-        final ProgressDialog mDialog = new ProgressDialog(this);
-        mDialog.setMessage("Please wait...");
-        mDialog.setCancelable(false);
-        mDialog.show();
+//    private void callLoginApi() {
+//        final ProgressDialog mDialog = new ProgressDialog(this);
+//        mDialog.setMessage("Please wait...");
+//        mDialog.setCancelable(false);
+//        mDialog.show();
+//
+//        String url= Urls.URL_LOGIN;
+//        StringRequest mRequest=new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+//            @Override
+//            public void onResponse(String response) {
+//                try {
+//                    mDialog.dismiss();
+//                    JSONObject json=new JSONObject(response);
+//                    int success=json.getInt("success");
+//                    if(success==1)
+//                    {
+//                        String email=json.getString("email");
+//                        makeLogin(email);
+//                    }
+//                    else new CustomToast(LoginActivity.this, "User not found", "", false);
+//                }
+//                catch (Exception e)
+//                {
+//                    new CustomToast(LoginActivity.this, "Something went wrong", "", false);
+//                }
+//
+//            }
+//        }, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                mDialog.dismiss();
+//                new CustomToast(LoginActivity.this, "Something went wrong", "", false);
+//            }
+//        })
+//        {
+//            @Override
+//            protected Map<String, String> getParams() throws AuthFailureError {
+//                Map<String, String>  params = new HashMap<>();
+//                params.put("username" , edtUserName.getText().toString().trim());
+//                params.put("password", edtPassword.getText().toString().trim());
+//                return params;
+//
+//            }
+//        };
+//        Volley.newRequestQueue(this).add(mRequest);
+//    }
 
-        String url= Urls.URL_LOGIN;
-        StringRequest mRequest=new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+
+    private void makeLogin() {
+        fAuth.signInWithEmailAndPassword(edtUserName.getText().toString().trim(),edtPassword.getText().toString().trim()).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
-            public void onResponse(String response) {
-                try {
-                    mDialog.dismiss();
-                    JSONObject json=new JSONObject(response);
-                    int success=json.getInt("success");
-                    if(success==1)
-                    {
-                        String email=json.getString("email");
-                        makeLogin(email);
-                    }
-                    else new CustomToast(LoginActivity.this, "User not found", "", false);
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if(task.isSuccessful()){
+                    Toast.makeText(LoginActivity.this, "Logged in Successfully.", Toast.LENGTH_SHORT) .show();
+
+                }else{
+                    Toast.makeText(LoginActivity.this, "Error! " + task.getException().getMessage(),Toast.LENGTH_SHORT).show();
                 }
-                catch (Exception e)
-                {
-                    new CustomToast(LoginActivity.this, "Something went wrong", "", false);
-                }
-
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                mDialog.dismiss();
-                new CustomToast(LoginActivity.this, "Something went wrong", "", false);
-            }
-        })
-        {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String>  params = new HashMap<>();
-                params.put("username" , edtUserName.getText().toString().trim());
-                params.put("password", edtPassword.getText().toString().trim());
-                return params;
-
-            }
-        };
-        Volley.newRequestQueue(this).add(mRequest);
-    }
-
-
-    private void makeLogin(String email) {
+        });
         PreferenceUtil preferenceUtil = new PreferenceUtil(this);
         preferenceUtil.setUserName(edtUserName.getText().toString().trim());
-        preferenceUtil.setEmail(email);
+        preferenceUtil.setEmail(edtUserName.getText().toString().trim());
         preferenceUtil.setPassword(edtPassword.getText().toString().trim());
 
         if(targetJob.equalsIgnoreCase("diagnosis")) {
@@ -212,7 +232,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(isInputValid()) {
             UtilityMethod  utilityMethod = new UtilityMethod();
             if(utilityMethod.isConnectedToInternet(this)) {
-                callLoginApi();
+                //callLoginApi();
+                makeLogin();
             } else {
                 new CustomToast(this, "Internet connection is required", "", false);
             }

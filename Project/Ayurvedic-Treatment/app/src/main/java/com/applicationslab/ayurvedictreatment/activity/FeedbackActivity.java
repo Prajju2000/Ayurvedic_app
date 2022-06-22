@@ -9,8 +9,8 @@ import android.widget.Button;
 
 import com.applicationslab.ayurvedictreatment.R;
 
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 /**
  * Created by user on 6/6/2016.
